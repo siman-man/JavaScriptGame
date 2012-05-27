@@ -1,15 +1,15 @@
-// シーングラフのroot今回はあまり実装しないかも
+// SceneGraphRoot is top Scene.
 
 SceneGraphRoot = function(){
-    this.children = null;	 	// rootはchildを1つしか持たない
-    this.w = 0;					// ゲーム画面の横幅
-    this.h = 0;					// ゲーム画面の縦幅
-    this.ctx = null;            // コンテキストを入れる
-    this.canvas = null;         // canvasオブジェクトをいれる
+    this.children = null;	 	// root has only one child.
+    this.w = 0;					// width of game screen
+    this.h = 0;					// height of game screen
+    this.ctx = null;            // into context
+    this.canvas = null;         // into canvas object
 }
 
 
-// それぞれのゲーム場面を格納する場所
+// game scene
 SceneGraph = function(){
     this.parents = null;
     this.child = new Array();

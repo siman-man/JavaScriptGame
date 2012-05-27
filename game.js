@@ -1,65 +1,113 @@
+/*
+ * This function is game start scene.
+ * @sgroot: SceneGraphRoot object.
+ */
+
 function startGame(sgroot){
-        var width = sgroot.w;
-        var height = sgroot.h;
-		var size = 90;
+    var width = sgroot.w;       // set screen size.
+    var height = sgroot.h;      // set screen size.
 
-		var player = new Object();
+    var sg = new SceneGraph();      // create scene graph object.
 
-		// 自分のキャラの画像を取得する。
-		player.img = readImage(ctx, "../../gacha/gacha/img/siman.jpg");
-		player.x = width * 0.2;
-		player.y = height * 0.8;
-		player.size = size;
-		player.turn = null;
-		player.hp = 50;
-		player.at = 5;
-		player.df = 5;
-		player.sp = 5;
+    // create player object.
+    var player = new Object();
 
-		var enemy = new Object();
+    // Get my character image.
+    player.img = sg.readImage(sgroot.ctx, "../../gacha/gacha/img/siman.jpg");
+    player.x = width * 0.2;         // set player position x.
+    player.y = height * 0.8;        // set player position y.
+    player.size = 90;               // set player image size.
+    player.turn = null;             
+    player.hp = 50;                 // set player hit point value.
+    player.at = 5;                  // set player attack value.
+    player.df = 5;                  // set player defense value.
+    player.sp = 5;                  // set player speed value.
 
-		// 敵のキャラの画像を取得する
-		enemy.img = readImage(ctx, "../../gacha/gacha/img/machida.jpg");
-		enemy.x = width * 0.8;
-		enemy.y = height * 0.2;
-		enemy.size = size;
-		enemy.turn = null;
-		enemy.hp = 40;
-		enemy.at = 4;
-		enemy.df = 4;
-		enemy.sp = 4;
+    // create enemy object
+    var enemy = new Object();
 
+    // get enemy character image.
+    enemy.img = sg.readImage(sgroot.ctx, "../../gacha/gacha/img/machida.jpg");
+    enemy.x = width * 0.8;          // set enemy position x
+    enemy.y = height * 0.2;         // set enemy position y
+    enemy.size = 90;                // set enemy size
+    enemy.turn = null;              // turn flag
+    enemy.hp = 40;                  // set enemy hit point value
+    enemy.at = 4;                   // set enemy attack value
+    enemy.df = 4;                   // set enemy defense value
+    enemy.sp = 4;                   // set enemy speed value
 
-		startBattleInit(sgroot, player, enemy);
-		var f = function() { startBattle(ctx, canvas, player, enemy); }
-		setInterval(f, 60);
+    sg.player = player;
+    sg.enemy = enemy;
+
+    sgroot.sg = sg;
+
+    // Initial battle scene 
+    sgroot.child = new startBattleInit(sgroot);
+
+    // Battle Scene loop
+    var f = function() { loop(sgroot); }
+    setInterval(f, 60);
 }
 
 
-function readImage(ctx, url){
-		var img = new Image();
+/* 
+ * This function is reading image from url.
+ * @ctx: context object.
+ * @url: locate image url.
+ */
+SceneGraph.prototype.readImage = function(ctx, url){
+    // create Image object.
+    var img = new Image();
 
-		img.src = url;
+    // set rul img.src.
+    img.src = url;
 
-		return img;
+    // return Image object.
+    return img;
 }
 
-function outImage(ctx, obj){
-		//obj.img.onload = function(){
-		ctx.drawImage(obj.img, obj.x, obj.y, obj.size, obj.size);	
-		//}
+
+/*
+ * This function is output image from obj.
+ * @ctx: context object.
+ * @obj: Image Object.
+ */
+
+SceneGraph.prototype.outImage = function(ctx, obj){
+    ctx.drawImage(obj.img, obj.x, obj.y, obj.size, obj.size);	
 }
 
-function startBattle(ctx, canvas, player, enemy){
-		ctx.clearRect( 10, 10, canvas.xsize, canvas.ysize);
-		ctx.strokeRect(10, 10, canvas.xsize, canvas.ysize); // 外枠を描画 
-		outImage(ctx, player);	
-		outImage(ctx, enemy);	
-		console.log('test');
+
+
+/* 
+ * This function is battle scene.
+ * @sgroot: SceneGraphRoot object.
+ * @player: player object.
+ * @enemy: enemy object.
+ */
+
+function startBattle(sgroot, player, enemy){
+    ctx.clearRect( 10, 10, sgroot.w, sgroot.h); // clean game screen
+    ctx.strokeRect(10, 10, sgroot.w, sgroot.h); // wirting screen frame 
+
+    outImage(ctx, player);	
+    outImage(ctx, enemy);	
 }
 
-function textAnim(ctx, canvas, obj){
+
+/*
+ * This function is initialize battle scene
+ * @sgroot: SceneGraphRoot object.
+ * @player: player object.
+ * @enemy: enemy object.
+ */
+
+function startBattleInit(sgroot, player, enemy){
+    
 }
 
-function fadeIn(ctx, canvas, text){
+
+function loop(sgroot){
+    sgroot.sg;
 }
