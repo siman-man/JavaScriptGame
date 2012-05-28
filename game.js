@@ -68,90 +68,90 @@ function BattleScene(sgroot){
 
 BattleScene.prototype.initBattleScene = function(sgroot){
     var sg = new SceneGraph();      // create scene graph object.
-    sg.width = sgroot.w;
-    sg.height = sgroot.h;
+    sg.width = sgroot.w;            // screen width.
+    sg.height = sgroot.h;           // screen height.
 
-    sg.PLAYER_ATTACK = 0x01;
-    sg.PLAYER_RETURN = 0x02;
-    sg.ENEMY_ATTACK = 0x03;
-    sg.ENEMY_RETURN = 0x04;
-    sg.STOP = 0x05;
-    sg.PLAYER_WIN = 0x06;
-    sg.PLAYER_LOSE = 0x07;
+    // set scene flag.
+    sg.PLAYER_ATTACK = 0x01;        // player attack flag.
+    sg.PLAYER_RETURN = 0x02;        // player return flag.
+    sg.ENEMY_ATTACK = 0x03;         // enemy attack flag.
+    sg.ENEMY_RETURN = 0x04;         // enemy return flag.
+    sg.STOP = 0x05;                 // stop flag.
+    sg.PLAYER_WIN = 0x06;           // player win flag.
+    sg.PLAYER_LOSE = 0x07;          // player lose flag.
 
     // create player object.
     var player = new Object();
 
     // Get my character image.
     player.img = sg.readImage(sgroot.ctx, "../../gacha/gacha/img/siman.jpg");
-    player.name = 'siman';
-    player.x = sg.width* 0.5;         // set player position x.
-    player.y = sg.height * 0.8;        // set player position y.
-    player.dfx = player.x;
-    player.dfy = player.y;
+    player.name = 'siman';          // set player name.
+    player.x = sg.width* 0.5;       // set player position x.
+    player.y = sg.height * 0.8;     // set player position y.
+    player.dfx = player.x;          // set player default position x.
+    player.dfy = player.y;          // set player default position y.
     player.size = 90;               // set player image size.
-    player.turn = true;             
-    player.back = false;
-    player.hpmax = 50;
     player.hp = 50;                 // set player hit point value.
-    player.at = 20;                  // set player attack value.
+    player.hpmax = player.hp;       // set player hit point max value.
+    player.at = 13;                 // set player attack value.
     player.df = 5;                  // set player defense value.
     player.sp = 5;                  // set player speed value.
+
 
     // create enemy object
     var enemy = new Object();
 
     // get enemy character image.
     enemy.img = sg.readImage(sgroot.ctx, "../../gacha/gacha/img/machida.jpg");
-    enemy.name = 'machida';
-    enemy.x = sg.width * 0.5;          // set enemy position x
-    enemy.y = sg.height * 0.2;         // set enemy position y
-    enemy.dfx = enemy.x;
-    enemy.dfy = enemy.y;
+    enemy.name = 'machida';         // set enemy name.
+    enemy.x = sg.width * 0.5;       // set enemy position x.
+    enemy.y = sg.height * 0.2;      // set enemy position y.
+    enemy.dfx = enemy.x;            // set enemy default position x.
+    enemy.dfy = enemy.y;            // set enemy default position y.
     enemy.size = 90;                // set enemy size
-    enemy.turn = false;              // turn flag
-    enemy.back = false;
-    enemy.hpmax = 40;
     enemy.hp = 40;                  // set enemy hit point value
+    enemy.hpmax = enemy.hp;         // set enemy max hit point value.
     enemy.at = 4;                   // set enemy attack value
     enemy.df = 4;                   // set enemy defense value
     enemy.sp = 4;                   // set enemy speed value
 
-    var frame = 10;
-
-    var dist_x = enemy.x - player.x;
-    var dist_y = enemy.y - player.y;
-    player.mvx = dist_x / frame;
-    player.mvy = dist_y / frame;
-
-    var dist_x = player.x - enemy.x;
-    var dist_y = player.y - enemy.y;
-    enemy.mvx = dist_x / frame;
-    enemy.mvy = dist_y / frame;
 
     sg.player = player;
     sg.enemy = enemy;
- 
+
+    // first scene is player attack phase.
     sg.scene = sg.PLAYER_ATTACK;
 
+    // this scene main loop.
     sg.mainLoop = function(sgroot, sg){
 
+        // clear canvas.
         $('canvas').clearCanvas();
+        // select scene.
         sgroot.child.selectScene(sgroot, sg);
+        // check collision.
         sgroot.child.collisionCharacter(sgroot, sg);
-        sgroot.child.drawStatus(sgroot, sg);
+        // draw status.
+        sgroot.child.drawScreen(sgroot, sg);
 
-        sg.outImage(sgroot.ctx, sg.player);	
-        sg.outImage(sgroot.ctx, sg.enemy);	
     }
-
     return sg;
 }
 
+/*
+ * This function animation attack move.
+ * @sg: SceneGraph object.
+ * @my: moveing object.
+ * @x: destination point x.
+ * @y: destination point y.
+ */
 BattleScene.prototype.attackMove = function(sg, my, x, y){
-    var speed = 20;
+    // moving speed.
+    var speed = 30; 
     var dist_x = x - my.x;
     var dist_y = y - my.y;
+
+    // distance of between my from dest.
     var dist = Math.sqrt(dist_x * dist_x + dist_y * dist_y);
 
     if(my.x < x){
@@ -168,14 +168,21 @@ BattleScene.prototype.attackMove = function(sg, my, x, y){
         my.y -= speed;
     }
 
+    // if distance value less than 100px. change of scene
     if(dist < 100){
         switch(sg.scene){
             case sg.PLAYER_ATTACK:
                 sg.enemy.hp -= sg.player.at;
+                if(sg.enemy.hp <= 0){
+                    sg.enemy.hp = 0;
+                }
                 sg.scene = sg.PLAYER_RETURN;
                 break;
             case sg.ENEMY_ATTACK:
                 sg.player.hp -= sg.enemy.at;
+                if(sg.player.hp <= 0){
+                    sg.player.hp = 0;
+                }
                 sg.scene = sg.ENEMY_RETURN;
                 break;
             default:
@@ -184,8 +191,18 @@ BattleScene.prototype.attackMove = function(sg, my, x, y){
     }
 }
 
+
+/*
+ * This function return move of character object.
+ * @sg: SceneGraph object.
+ * @my: moving object.
+ * @x: destination point x.
+ * @y: destination point y.
+ */
 BattleScene.prototype.returnMove = function(sg, my, x, y){
-    var speed = 20;
+    // return speed
+    var speed = 30;
+
     if(my.x < my.dfx){
         my.x += speed;
     }
@@ -200,6 +217,7 @@ BattleScene.prototype.returnMove = function(sg, my, x, y){
         my.y -= speed;
     }
 
+    // if my object return to default position.
     if(my.x == my.dfx && my.y == my.dfy){
         switch(sg.scene){
             case sg.PLAYER_RETURN:
@@ -222,37 +240,59 @@ BattleScene.prototype.returnMove = function(sg, my, x, y){
     }
 }
 
+/*
+ * This function is a little wait game.
+ * @sg: SceneGraph object.
+ */
 BattleScene.prototype.littleWait = function(sg){
-    if((sg.frame % 30) == 0){
+    if((sg.frame % 15) == 0){
         sg.scene = sg.PLAYER_ATTACK;
     }
 }
 
+/* 
+ * This function is display player win.
+ * @sgroot: SceneGraphRoot object.
+ * @sg: SceneGraph object.
+ */
 BattleScene.prototype.resultWin = function(sgroot, sg){
-$('canvas').drawText({
-fillStyle: "#f00",
-strokeStyle: "#000", 
-strokeWidth: "1",
-x: sgroot.w/2, y: sgroot.h/2,
-font: "20pt Arial",
-fromCenter: true,
-text: sg.player.name + ' WIN'
-});
+    $('canvas').drawText({
+        fillStyle: "#f00",
+        strokeStyle: "#000", 
+        strokeWidth: "1",
+        x: sgroot.w/2, y: sgroot.h/2,
+        font: "20pt Arial",
+        fromCenter: true,
+        text: sg.player.name + ' WIN'
+    });
 }
 
+
+/*
+ * This function is display player lose.
+ * @sgroot: SceneGraphRoot object.
+ * @sg: SceneGraph object.
+ */
 BattleScene.prototype.resultLose = function(sgroot, sg){
-$('canvas').drawText({
-fillStyle: "#00f",
-strokeStyle: "#000", 
-strokeWidth: "1",
-x: sgroot.w /2, y: sgroot.h /2,
-font: "20pt Arial",
-fromCenter: true,
-text: sg.player.name + ' LOSE'
-});
+    $('canvas').drawText({
+        fillStyle: "#00f",
+        strokeStyle: "#000", 
+        strokeWidth: "1",
+        x: sgroot.w /2, y: sgroot.h /2,
+        font: "20pt Arial",
+        fromCenter: true,
+        text: sg.player.name + ' LOSE'
+    });
 }
 
+
+/* 
+ * This function is check flag and select scene.
+ * @sgroot: SceneGraphRoot object.
+ * @sg: SceneGraph object.
+ */
 BattleScene.prototype.selectScene = function(sgroot, sg){
+    // check flag
     switch(sg.scene){
         case sg.PLAYER_ATTACK:
             sgroot.child.attackMove(sg, sg.player, sg.enemy.x, sg.enemy.y); 
@@ -280,100 +320,118 @@ BattleScene.prototype.selectScene = function(sgroot, sg){
     }
 }
 
+/*
+ * This function is check collision.
+ * @sgroot: SceneGraphRoot object.
+ * @sg: SceneGraph object.
+ */
 BattleScene.prototype.collisionCharacter = function(sgroot, sg){
-    /*
-       var dist_x = my.x - x;
-       var dist_y = my.y - y;
-       var frame = 10;
-       var dist = Math.sqrt(dist_x * dist_x + dist_y * dist_y);
-     */
 }
 
-BattleScene.prototype.drawStatus = function(sgroot, sg){
+/* 
+ * This function is drawing screen.
+ * @sgroot: SceneGraphRoot object.
+ * @sg: SceneGraph object.
+ */
+BattleScene.prototype.drawScreen = function(sgroot, sg){
+    // calculate ratio hp.
     var p_s = sg.player.hp / sg.player.hpmax;
     var e_s = sg.enemy.hp / sg.enemy.hpmax;
 
 
+    // draw game scree.
     $("canvas").drawRect({
-strokeStyle: "#000",
-x: 10, y: 10,
-width: sgroot.w,
-height: sgroot.h,
-fromCenter: false
-});
+        strokeStyle: "#000",
+        x: 10, y: 10,
+        width: sgroot.w,
+        height: sgroot.h,
+        fromCenter: false
+    });
 
-$('canvas').drawText({
-fillStyle: "#000",
-strokeStyle: "#000", 
-strokeWidth: "1",
-x: sg.player.x, y: sg.player.y + 60,
-font: "13pt Arial",
-fromCenter: true,
-text: 'HP : ' + sg.player.hp
-});
+    // draw player hp.
+    $('canvas').drawText({
+        fillStyle: "#000",
+        strokeStyle: "#000", 
+        strokeWidth: "1",
+        x: sg.player.x, y: sg.player.y + 60,
+        font: "13pt Arial",
+        fromCenter: true,
+        text: 'HP : ' + sg.player.hp
+    });
 
-$('canvas').drawText({
-fillStyle: "#000",
-strokeStyle: "#000", 
-strokeWidth: "1",
-x: sg.player.x, y: sg.player.y - 60,
-font: "13pt Arial",
-fromCenter: true,
-text: sg.player.name
-});
-
-
-$('canvas').drawRect({
-fillStyle: "#7CFC00",
-x: sg.player.x - (100 - (100 * p_s)) * 0.5, y: sg.player.y + 80,
-width: 100 * p_s, height: 10,
-fromCenter: true
-});
+    // draw player name.
+    $('canvas').drawText({
+        fillStyle: "#000",
+        strokeStyle: "#000", 
+        strokeWidth: "1",
+        x: sg.player.x, y: sg.player.y - 60,
+        font: "13pt Arial",
+        fromCenter: true,
+        text: sg.player.name
+    });
 
 
-$('canvas').drawRect({
-strokeStyle: "#000",
-strokeWidth: "3",
-x: sg.player.x, y: sg.player.y + 80,
-width: 100, height: 10,
-fromCenter: true
-});
+    // draw player's remainder HP.
+    $('canvas').drawRect({
+        fillStyle: "#7CFC00",
+        x: sg.player.x - (100 - (100 * p_s)) * 0.5, y: sg.player.y + 80,
+        width: 100 * p_s, height: 10,
+        fromCenter: true
+    });
 
 
-$('canvas').drawText({
-fillStyle: "#000",
-strokeStyle: "#000", 
-strokeWidth: "1",
-x: sg.enemy.x, y: sg.enemy.y + 60,
-font: "13pt Arial",
-fromCenter: true,
-text: 'HP : ' + sg.enemy.hp
-});
+    // draw hp bar frame.
+    $('canvas').drawRect({
+        strokeStyle: "#000",
+        strokeWidth: "3",
+        x: sg.player.x, y: sg.player.y + 80,
+        width: 100, height: 10,
+        fromCenter: true
+    });
 
-$('canvas').drawText({
-fillStyle: "#000",
-strokeStyle: "#000", 
-strokeWidth: "1",
-x: sg.enemy.x, y: sg.enemy.y - 60,
-font: "13pt Arial",
-fromCenter: true,
-text: sg.enemy.name
-});
 
-$('canvas').drawRect({
-fillStyle: "#7CFC00",
-x: sg.enemy.x - (100 - (100 * e_s)) * 0.5, y: sg.enemy.y + 80,
-width: 100 * e_s, height: 10,
-fromCenter: true
-});
+    // draw enemy hp.
+    $('canvas').drawText({
+        fillStyle: "#000",
+        strokeStyle: "#000", 
+        strokeWidth: "1",
+        x: sg.enemy.x, y: sg.enemy.y + 60,
+        font: "13pt Arial",
+        fromCenter: true,
+        text: 'HP : ' + sg.enemy.hp
+    });
 
-$('canvas').drawRect({
-strokeStyle: "#000",
-strokeWidth: "3",
-x: sg.enemy.x, y: sg.enemy.y + 80,
-width: 100, height: 10,
-fromCenter: true
-});
+    // draw enemy name.
+    $('canvas').drawText({
+        fillStyle: "#000",
+        strokeStyle: "#000", 
+        strokeWidth: "1",
+        x: sg.enemy.x, y: sg.enemy.y - 60,
+        font: "13pt Arial",
+        fromCenter: true,
+        text: sg.enemy.name
+    });
+
+    // draw enemy's remainder HP.
+    $('canvas').drawRect({
+        fillStyle: "#7CFC00",
+        x: sg.enemy.x - (100 - (100 * e_s)) * 0.5, y: sg.enemy.y + 80,
+        width: 100 * e_s, height: 10,
+        fromCenter: true
+    });
+
+    // draw enemy hp frame.
+    $('canvas').drawRect({
+        strokeStyle: "#000",
+        strokeWidth: "3",
+        x: sg.enemy.x, y: sg.enemy.y + 80,
+        width: 100, height: 10,
+        fromCenter: true
+    });
+
+    // output character image.
+    sg.outImage(sgroot.ctx, sg.player);	
+    sg.outImage(sgroot.ctx, sg.enemy);	
 }
 
 
